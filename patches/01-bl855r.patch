@@ -1,0 +1,238 @@
+Index: target/linux/ramips/image/Makefile
+===================================================================
+--- target/linux/ramips/image/Makefile	(revision 43770)
++++ target/linux/ramips/image/Makefile	(working copy)
+@@ -724,6 +724,8 @@
+ na930_mtd_size=20971520
+ Image/Build/Profile/NA930=$(call BuildFirmware/CustomFlash/$(1),$(1),na930,NA930,$(na930_mtd_size))
+ Image/Build/Profile/MZK-750DHP=$(call BuildFirmware/Default8M/$(1),$(1),mzk-750dhp,MZK-750DHP)
++Image/Build/Profile/BL-855R=$(call BuildFirmware/Default16M/$(1),$(1),BL-855R,BL-855R)
+ Image/Build/Profile/Y1=$(call BuildFirmware/Default16M/$(1),$(1),Lenovo-y1,Y1)
+ Image/Build/Profile/Y1S=$(call BuildFirmware/Default16M/$(1),$(1),Lenovo-y1s,Y1S)
+ 
+@@ -740,6 +742,8 @@
+ 	$(call Image/Build/Profile/WHR1166D,$(1))
+ 	$(call Image/Build/Profile/MZK-750DHP,$(1))
+ 	$(call Image/Build/Profile/NA930,$(1))
++	$(call Image/Build/Profile/BL-855R,$(1))
+ 	$(call Image/Build/Profile/Y1,$(1))
+ 	$(call Image/Build/Profile/Y1S,$(1))
+ endef
+Index: target/linux/ramips/dts/BL-855R.dts
+===================================================================
+--- target/linux/ramips/dts/BL-855R.dts	(revision 0)
++++ target/linux/ramips/dts/BL-855R.dts	(revision 0)
+@@ -0,0 +1,161 @@
++/dts-v1/;
++
++/include/ "mt7620n.dtsi"
++
++/ {
++	compatible = "BL-855R", "ralink,mt7620n-soc";
++	model = "BL-855R";
++
++	chosen {
++		bootargs = "console=ttyS0,57600";
++	};
++
++	palmbus@10000000 {
++		gpio2: gpio@660 {
++			status = "okay";
++		};
++		gpio3: gpio@688 {
++			status = "okay";
++		};
++
++		spi@b00 {
++			status = "okay";
++
++			m25p80@0 {
++				#address-cells = <1>;
++				#size-cells = <1>;
++				#compatible = "mx25l6405d";
++				compatible = "w25q128";
++				reg = <0 0>;
++				linux,modalias = "m25p80", "w25q128";
++				spi-max-frequency = <10000000>;
++
++				partition@0 {
++					label = "u-boot";
++					reg = <0x0 0x30000>;
++					read-only;
++				};
++
++				partition@30000 {
++					label = "u-boot-env";
++					reg = <0x30000 0x10000>;
++					read-only;
++				};
++
++				factory: partition@40000 {
++					label = "factory";
++					reg = <0x40000 0x10000>;
++					read-only;
++				};
++
++				partition@50000 {
++					label = "firmware";
++					reg = <0x50000 0xfb0000>;
++				};
++			};
++		};
++	};
++
++	ehci@101c0000 {
++		status = "okay";
++	};
++
++	ohci@101c1000 {
++		status = "okay";
++	};
++
++	ethernet@10100000 {
++		mtd-mac-address = <&factory 0x4>;
++		ralink,port-map = "wllll";
++	};
++
++	wmac@10180000 {
++		ralink,mtd-eeprom = <&factory 0>;
++	};
++
++	pinctrl {
++		state_default: pinctrl0 {
++			default {
++				ralink,group = "ephy", "wled";
++				ralink,function = "gpio";
++			};
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		system {
++			label = "system";
++			gpios = <&gpio0 9 1>;
++		};
++		internet {
++			label = "internet";
++			gpios = <&gpio0 11 1>;
++		};
++		wlan2p4 {
++			label = "wlan2p4";
++			gpios = <&gpio3 0 1>;
++		};
++	};
++
++	gpio-keys-polled {
++		compatible = "gpio-keys-polled";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		poll-interval = <20>;
++		reset {
++			label = "reset";
++			gpios = <&gpio0 1 1>;
++			linux,code = <0x198>;
++		};
++		wps {
++			label = "wps";
++			gpios = <&gpio0 2 1>;
++			linux,code = <0x211>;
++		};
++	};
++};
+Index: target/linux/ramips/mt7620a/profiles/BL-855R.mk
+===================================================================
+--- target/linux/ramips/mt7620a/profiles/BL-855R.mk	(revision 0)
++++ target/linux/ramips/mt7620a/profiles/BL-855R.mk	(revision 0)
+@@ -0,0 +1,20 @@
++#
++# Copyright (C) 2011 OpenWrt.org
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++
++define Profile/BL-855R
++ NAME:=BL-855R
++ PACKAGES:=\
++   kmod-usb-core kmod-usb-dwc2 kmod-usb2 kmod-usb-storage  \
++   kmod-mmc-spi kmod-sdhci kmod-sdhci-mt7620 \
++   block-mount mountd kmod-fs-ext4 ppp-mod-pppoe e2fsprogs \
++   kmod-ledtrig-usbdev fdisk
++endef
++
++define Profile/BL-855R/Description
++ Default BL-855R support.
++endef
++$(eval $(call Profile,HiWiFi-HC5761))
+Index: target/linux/ramips/base-files/lib/ramips.sh
+===================================================================
+--- target/linux/ramips/base-files/lib/ramips.sh	(revision 43770)
++++ target/linux/ramips/base-files/lib/ramips.sh	(working copy)
+@@ -325,6 +325,12 @@
+ 	*"ZBT WR8305RT")
+ 		name="wr8305rt"
+ 		;;
++	*"BL-855R")
++		name="BL-855R"
++		;;
+ 	*"Lenovo Y1")
+ 		name="y1"
+ 		;;
+Index: target/linux/ramips/base-files/lib/upgrade/platform.sh
+===================================================================
+--- target/linux/ramips/base-files/lib/upgrade/platform.sh	(revision 43770)
++++ target/linux/ramips/base-files/lib/upgrade/platform.sh	(working copy)
+@@ -98,6 +98,7 @@
+ 	x5 |\
+ 	x8 |\
+ 	zbt-wa05 |\
++	BL-855R |\
+ 	y1 |\
+ 	y1s)
+ 		[ "$magic" != "27051956" ] && {
+Index: target/linux/ramips/base-files/etc/uci-defaults/01_leds
+===================================================================
+--- target/linux/ramips/base-files/etc/uci-defaults/01_leds	(revision 43770)
++++ target/linux/ramips/base-files/etc/uci-defaults/01_leds	(working copy)
+@@ -203,6 +203,19 @@
+ 		set_usb_led "wr8305rt:usb"
+ 		set_wifi_led "wr8305rt:wifi"
+ 		;;
++	BL-855R)
++		ucidef_set_led_default "system" "system" "system" "1"
++		ucidef_set_led_netdev "internet" "internet" "internet" "eth0.2"
++		set_wifi_led "wlan2p4"
++		;;
+ 	y1 |\
+ 	y1s)
+ 		ucidef_set_led_default "power" "power" "lenovo:blue:power" "1"
+Index: target/linux/ramips/base-files/etc/diag.sh
+===================================================================
+--- target/linux/ramips/base-files/etc/diag.sh	(revision 43770)
++++ target/linux/ramips/base-files/etc/diag.sh	(working copy)
+@@ -188,6 +188,9 @@
+ 	na930)
+ 		status_led="na930:blue:power"
+ 		;;
++	BL-855R)
++		status_led="hiwifi:blue:system"
++		;;
+ 	y1 | \
+ 	y1s)
+ 		status_led="lenovo:blue:power"
+Index: target/linux/ramips/patches-3.10/0402-mtd-gd25q.patch
+===================================================================
+--- target/linux/ramips/patches-3.10/0402-mtd-gd25q.patch	(revision 0)
++++ target/linux/ramips/patches-3.10/0402-mtd-gd25q.patch	(revision 0)
+@@ -0,0 +1,10 @@
++--- a/drivers/mtd/devices/m25p80.c
+++++ b/drivers/mtd/devices/m25p80.c
++@@ -984,6 +984,7 @@ static const struct spi_device_id m25p_ids[] = {
++ 	{ "w25q80bl", INFO(0xef4014, 0, 64 * 1024,  16, SECT_4K) },
++ 	{ "w25q128", INFO(0xef4018, 0, 64 * 1024, 256, SECT_4K) },
++ 	{ "w25q256", INFO(0xef4019, 0, 64 * 1024, 512, SECT_4K) },
+++	{ "gd25q128b", INFO(0xc84018, 0, 64 * 1024, 256, SECT_4K)},
++ 
++ 	/* Catalyst / On Semiconductor -- non-JEDEC */
++ 	{ "cat25c11", CAT25_INFO(  16, 8, 16, 1) },
