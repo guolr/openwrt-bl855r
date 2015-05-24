@@ -50,7 +50,7 @@ BL-855R: $(PREPARED_TARGETS)
 
 .patched:
 	mkdir -p $(BUILDER)/target/linux/ramips/patches-3.10
-	cat ../patches/01-bl855r.patch ../patches/12-disable-pdnsd.patch > .patching
+	cat patches/01-bl855r.patch patches/12-disable-pdnsd.patch > .patching
 	patch -d $(BUILDER) -p0 < .patching
 	mv .patching .patched
 
