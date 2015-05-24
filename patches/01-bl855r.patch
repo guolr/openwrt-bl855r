@@ -22,7 +22,7 @@ Index: target/linux/ramips/dts/BL-855R.dts
 ===================================================================
 --- target/linux/ramips/dts/BL-855R.dts	(revision 0)
 +++ target/linux/ramips/dts/BL-855R.dts	(revision 0)
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,117 @@
 +/dts-v1/;
 +
 +/include/ "mt7620n.dtsi"
@@ -169,7 +169,7 @@ Index: target/linux/ramips/base-files/lib/ramips.sh
 ===================================================================
 --- target/linux/ramips/base-files/lib/ramips.sh	(revision 43770)
 +++ target/linux/ramips/base-files/lib/ramips.sh	(working copy)
-@@ -325,6 +325,12 @@
+@@ -325,6 +325,9 @@
  	*"ZBT WR8305RT")
  		name="wr8305rt"
  		;;
@@ -195,7 +195,7 @@ Index: target/linux/ramips/base-files/etc/uci-defaults/01_leds
 ===================================================================
 --- target/linux/ramips/base-files/etc/uci-defaults/01_leds	(revision 43770)
 +++ target/linux/ramips/base-files/etc/uci-defaults/01_leds	(working copy)
-@@ -203,6 +203,19 @@
+@@ -203,6 +203,11 @@
  		set_usb_led "wr8305rt:usb"
  		set_wifi_led "wr8305rt:wifi"
  		;;
