@@ -107,22 +107,6 @@ Index: target/linux/ramips/dts/BL-855R.dts
 +		};
 +	};
 +
-+	gpio-leds {
-+		compatible = "gpio-leds";
-+		system {
-+			label = "system";
-+			gpios = <&gpio0 9 1>;
-+		};
-+		internet {
-+			label = "internet";
-+			gpios = <&gpio0 11 1>;
-+		};
-+		wlan2p4 {
-+			label = "wlan2p4";
-+			gpios = <&gpio3 0 1>;
-+		};
-+	};
-+
 +	gpio-keys-polled {
 +		compatible = "gpio-keys-polled";
 +		#address-cells = <1>;
@@ -191,36 +175,6 @@ Index: target/linux/ramips/base-files/lib/upgrade/platform.sh
  	y1 |\
  	y1s)
  		[ "$magic" != "27051956" ] && {
-Index: target/linux/ramips/base-files/etc/uci-defaults/01_leds
-===================================================================
---- target/linux/ramips/base-files/etc/uci-defaults/01_leds	(revision 43770)
-+++ target/linux/ramips/base-files/etc/uci-defaults/01_leds	(working copy)
-@@ -203,6 +203,11 @@
- 		set_usb_led "wr8305rt:usb"
- 		set_wifi_led "wr8305rt:wifi"
- 		;;
-+	BL-855R)
-+		ucidef_set_led_default "system" "system" "system" "1"
-+		ucidef_set_led_netdev "internet" "internet" "internet" "eth0.2"
-+		set_wifi_led "wlan2p4"
-+		;;
- 	y1 |\
- 	y1s)
- 		ucidef_set_led_default "power" "power" "lenovo:blue:power" "1"
-Index: target/linux/ramips/base-files/etc/diag.sh
-===================================================================
---- target/linux/ramips/base-files/etc/diag.sh	(revision 43770)
-+++ target/linux/ramips/base-files/etc/diag.sh	(working copy)
-@@ -188,6 +188,9 @@
- 	na930)
- 		status_led="na930:blue:power"
- 		;;
-+	BL-855R)
-+		status_led="hiwifi:blue:system"
-+		;;
- 	y1 | \
- 	y1s)
- 		status_led="lenovo:blue:power"
 Index: target/linux/ramips/patches-3.10/0402-mtd-gd25q.patch
 ===================================================================
 --- target/linux/ramips/patches-3.10/0402-mtd-gd25q.patch	(revision 0)
